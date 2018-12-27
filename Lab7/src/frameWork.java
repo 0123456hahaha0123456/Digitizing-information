@@ -1,14 +1,18 @@
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class frameWork extends javax.swing.JFrame {
-
+    String fileName = "input.txt";
+    peopleMap5 mp;
     /**
      * Creates new form frame
      */
     DefaultTreeModel model;
     public frameWork() {
         initComponents();
+        model =(DefaultTreeModel) jTree1.getModel();
     }
 
     /**
@@ -30,23 +34,34 @@ public class frameWork extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
 
-        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("Data");
+        createNodes(treeNode1);
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+
         jScrollPane1.setViewportView(jTree1);
 
-        jTextField1.setText("Age");
-
-        jTextField2.setText("Name");
-
-        jTextField3.setText("onTv");
-
-        jTextField4.setText("Job");
+        setFieldText();
 
         jButton1.setText("Add");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Edit");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setText("Delete");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -89,9 +104,95 @@ public class frameWork extends javax.swing.JFrame {
                                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addContainerGap(29, Short.MAX_VALUE))
         );
-
         pack();
     }// </editor-fold>
+
+    private void setFieldText(){
+        jTextField1.setText("Age1");
+        jTextField2.setText("Name2");
+        jTextField3.setText("onTv3");
+        jTextField4.setText("Job4");
+    }
+    private void createNodes(DefaultMutableTreeNode top) {
+        DefaultMutableTreeNode  person ;
+        person = new DefaultMutableTreeNode("People");
+        top.add(person);
+        try{
+            initTree(person);
+        }catch (IOException e){
+            System.out.println("No file");
+        }
+    }
+
+    private void initTree(DefaultMutableTreeNode person) throws IOException{
+        csvFormat tmp = new csvFormat();
+        ArrayList<People> arr = tmp.readCsvFile(fileName);
+        this.mp = new peopleMap5(arr);
+
+        DefaultMutableTreeNode duc;
+        for(int i=0;i<arr.size();i++) {
+            duc = new DefaultMutableTreeNode(arr.get(i));
+            person.add(duc);
+        }
+    }
+
+    private People getPeople(String _name,String _age,String _job,String _onTv){
+        int age = Integer.parseInt(_age);
+        Job job = Job.valueOf(_job.toUpperCase());
+        boolean onTv = Boolean.valueOf(_onTv);
+        People duc = new People(_name,age,job,onTv);
+        return duc;
+    }
+    //add button
+    private DefaultMutableTreeNode selectedNode;
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
+        if (selectedNode != null){
+            String name = jTextField2.getText();
+            String age = jTextField1.getText();
+            String job = jTextField4.getText();
+            String onTv = jTextField3.getText();
+            People duc = getPeople(name,age,job,onTv);
+            mp.add(duc);
+            selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));
+            model.reload(selectedNode);
+        }
+        setFieldText();
+    }
+    //edit button
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
+        if (selectedNode != null){
+            String name = jTextField2.getText();
+            String age = jTextField1.getText();
+            String job = jTextField4.getText();
+            String onTv = jTextField3.getText();
+            People duc = getPeople(name,age,job,onTv);
+            mp.add(duc);
+
+            String _duc = selectedNode.toString();
+            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
+            parent.remove(selectedNode);
+            mp.remove(_duc);
+
+            parent.insert(new DefaultMutableTreeNode(duc),parent.getIndex(parent.getLastChild()));
+
+            model.reload(parent);
+        }
+        setFieldText();
+    }
+    //delete button
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+        selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
+        if (selectedNode != null){
+            String duc = selectedNode.toString();
+            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
+            parent.remove(selectedNode);
+            mp.remove(duc);
+            model.reload(parent);
+        }
+        setFieldText();
+    }
 
     public static void solve() {
         /* Set the Nimbus look and feel */
