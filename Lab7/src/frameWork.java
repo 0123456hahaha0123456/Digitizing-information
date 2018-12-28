@@ -1,11 +1,17 @@
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class frameWork extends javax.swing.JFrame {
+    String colour[] = {"red","black","green","magenta","yellow"};
     String fileName = "input.txt";
+
     peopleMap5 mp;
+    ArrayList<Rectangle> rect;
+
     /**
      * Creates new form frame
      */
@@ -123,19 +129,34 @@ public class frameWork extends javax.swing.JFrame {
             System.out.println("No file");
         }
     }
+    //create Rectangle to sent to client
+    private void initRect(ArrayList<People> arr){
+        rect = new ArrayList<Rectangle>(){};
+        Rectangle duc ;
+        Random rand = new Random();
+        for(int i=0;i<arr.size();i++){
+           duc = new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[i%5],i*100+rand.nextInt(1000)+1,i*100+rand.nextInt(1000)+1,arr.get(i));
+           rect.add(duc);
+        }
+    }
 
+    // create tree, show key of People
     private void initTree(DefaultMutableTreeNode person) throws IOException{
+        //read file input to import people
         csvFormat tmp = new csvFormat();
         ArrayList<People> arr = tmp.readCsvFile(fileName);
         this.mp = new peopleMap5(arr);
 
+        initRect(arr);
+
         DefaultMutableTreeNode duc;
-        for(int i=0;i<arr.size();i++) {
-            duc = new DefaultMutableTreeNode(arr.get(i));
+        for(int i=0;i<rect.size();i++) {
+            duc = new DefaultMutableTreeNode(rect.get(i).getPeople());
             person.add(duc);
         }
     }
 
+    // get People from 4 feildtext
     private People getPeople(String _name,String _age,String _job,String _onTv){
         int age = Integer.parseInt(_age);
         Job job = Job.valueOf(_job.toUpperCase());
@@ -145,6 +166,7 @@ public class frameWork extends javax.swing.JFrame {
     }
     //add button
     private DefaultMutableTreeNode selectedNode;
+    Random rand = new Random();
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if (selectedNode != null){
@@ -154,6 +176,7 @@ public class frameWork extends javax.swing.JFrame {
             String onTv = jTextField3.getText();
             People duc = getPeople(name,age,job,onTv);
             mp.add(duc);
+            rect.add(new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[rand.nextInt(4)+1],rand.nextInt(1000)+1, rand.nextInt(1000)+1,duc));
             selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));
             model.reload(selectedNode);
         }
@@ -169,12 +192,13 @@ public class frameWork extends javax.swing.JFrame {
             String onTv = jTextField3.getText();
             People duc = getPeople(name,age,job,onTv);
             mp.add(duc);
+            rect.add(new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[rand.nextInt(4)+1],rand.nextInt(1000)+1, rand.nextInt(1000)+1,duc));
 
             String _duc = selectedNode.toString();
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
             parent.remove(selectedNode);
             mp.remove(_duc);
-
+            for(int i=0;i<rect.size();i++) if (rect.get(i).getPeople().toString().equals(_duc)) { rect.remove(i); break;}
             parent.insert(new DefaultMutableTreeNode(duc),parent.getIndex(parent.getLastChild()));
 
             model.reload(parent);
@@ -189,8 +213,10 @@ public class frameWork extends javax.swing.JFrame {
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
             parent.remove(selectedNode);
             mp.remove(duc);
+            for(int i=0;i<rect.size();i++) if (rect.get(i).getPeople().toString().equals(duc)) { rect.remove(i); break;}
             model.reload(parent);
         }
+        for(int i=0;i<rect.size();i++) System.out.println(rect.get(i).getPeople());
         setFieldText();
     }
 

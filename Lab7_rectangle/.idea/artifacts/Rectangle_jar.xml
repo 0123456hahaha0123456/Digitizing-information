@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Rectangle:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Rectangle_jar</output-path>
+    <root id="archive" name="Rectangle.jar">
+      <element id="module-output" name="Rectangle" />
+      <element id="extracted-dir" path="D:/Lab3/lab3/out/artifacts/lab3_progr_jar/lab3_progr.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

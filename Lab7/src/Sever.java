@@ -1,4 +1,6 @@
+import java.awt.*;
 import java.io.*;
+
 
 public class Sever {
     static String user ;
@@ -12,6 +14,7 @@ public class Sever {
         user = fw.readLine();
         password = fw.readLine();
     }
+
 
     public static void main(String[] args) throws IOException{
         Sever duc = new Sever();
