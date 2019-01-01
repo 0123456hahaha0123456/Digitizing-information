@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.awt.Font;
+
 public class Rectangle extends JPanel implements MouseMotionListener{
     private int tmp = -1; // for drawtext in jpanel
     private int width;
@@ -85,23 +85,12 @@ public class Rectangle extends JPanel implements MouseMotionListener{
         super.paintComponent(g);
         g.setColor(this.color);
         g.fillRect(0,0,this.width, this.height);
-        System.out.println(this.tmp);
-        if (this.tmp > 0){
-            g.setColor(Color.WHITE );
-            g.setFont(new Font("Arial", Font.BOLD, 15));
-            g.drawString("hihasdlkfja;sl" ,1, 15);
-            this.tmp = -1;
-        }
-
     }
 
     @Override
     public void mouseMoved (MouseEvent me)
     {
-        this.tmp = me.getX();
-        //System.out.println(this.tmp);
         repaint();
-        //this.tmp = -1;
     }
     @Override
     public void mouseDragged (MouseEvent me) {

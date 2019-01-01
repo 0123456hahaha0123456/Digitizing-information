@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Client {
     ArrayList<Rectangle> arr;
-    String colour[] = {"red","black","green","magenta","yellow"};
+    public static String colour[] = {"red","black","green","magenta","yellow"};
 
     private void init()throws IOException{
         csvFormat tmp = new csvFormat();
