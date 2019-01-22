@@ -1,13 +1,9 @@
-import com.sun.org.apache.regexp.internal.RECompiler;
-import javafx.scene.control.Tooltip;
-
-import javax.print.DocFlavor;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+
 
 public class frameClient  {
     ArrayList<Rectangle> arr;
@@ -25,7 +21,6 @@ public class frameClient  {
         frameCli.getContentPane().setBackground(Color.white);
         //frameCli.getContentPane().setVisible(false);
         frameCli.setLayout(null);
-
 
         frameCli.setSize(1000,1000);
         frameCli.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -94,7 +89,7 @@ public class frameClient  {
     }
 
     //the filter rec
-    private void recFilter(String listColorString, String areaString){
+    private ArrayList<Rectangle> recFilter(String listColorString, String areaString){
         int area;
         if (areaString!=null) area = Integer.parseInt(areaString);
         else area = 0;
@@ -121,39 +116,59 @@ public class frameClient  {
         }
 
         //find which rec will acceptable condition
+        ArrayList<Rectangle> _arr = new ArrayList<Rectangle>(){};
+        arrCorY = new int[100];
         for(int i=0;i<arr.size();i++){
             Rectangle tmp = arr.get(i);
             if ((tmp.getHeight() * tmp.getWidth() >area) && ((tmp.getColor() == listColor) || (listColorString==null))){
-                runCondition(i);
+                arrCorY[_arr.size()] = tmp.getCorY();
+                _arr.add(tmp);
+
             }
         }
-    }
-    //sua tiep phan move
-    private void runCondition(int index){
-        for(int i =0;i<20;i++){
-            Rectangle tmp = arr.get(index);
-            tmp.setLocation(tmp.getCorX(), tmp.getCorY()-i);
-        }
+        return _arr;
     }
 
     private void actionPerformed(ActionEvent e){
+        String listColorString;
+        String areaString;
         if (e.getActionCommand().equals("Start")){
-            String listColorString;
-            String areaString;
             try{
                 listColorString  = listColor.getSelectedValue().toString();
                 if (!arealist.getText().equals("")) areaString =  arealist.getText() ;
                 else areaString = "0";
 
                 if (listColorString!=null || areaString!=null) {
-                    System.out.println(listColorString + " " + areaString);
-                    recFilter(listColorString,areaString);
+                    //System.out.println(listColorString + " " + areaString);
+                    ArrayList<Rectangle> _arr = recFilter(listColorString,areaString);
+                    timer = new Timer(100, new ActionListener() {
+                        long start1 = System.currentTimeMillis();
+                        public void actionPerformed(ActionEvent e) {
+
+                            for(int i = 0 ;i<_arr.size();i++){
+                                long elapsedTimeMillis = System.currentTimeMillis()-start1;
+                                if (elapsedTimeMillis > 3000){
+                                    if (elapsedTimeMillis <6000) _arr.get(i).moveDown();
+                                    else
+                                    {
+                                        _arr.get(i).setCorY(arrCorY[i]);
+                                        _arr.get(i).setLocation(_arr.get(i).getCorX(), _arr.get(i).getCorY());
+                                        _arr.get(i).draw();
+                                        timer.stop();
+                                    }
+                                }
+                                else _arr.get(i).moveUp();
+                            }
+                        }
+                    });
+                    timer.start();
                 }
             }catch (NullPointerException exp){
                 System.out.println("hihi");
             }
         }
         else if (e.getActionCommand().equals("End")) {
+            timer.stop();
         }
     }
 
@@ -168,7 +183,6 @@ public class frameClient  {
         Rectangle duc;
         for(int i=0;i<arr.size();i++){
             duc = arr.get(i);
-            duc = arr.get(i);
             panelPos.add(duc);
             duc.setToolTipText("x = " + duc.getCorX() +" "
                     +"y = " + duc.getCorY() + " "
@@ -182,4 +196,6 @@ public class frameClient  {
 
     private JTextField arealist;
     private JList listColor;
+    private Timer timer = null;
+    private int[] arrCorY;
 }

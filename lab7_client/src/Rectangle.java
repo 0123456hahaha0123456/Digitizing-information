@@ -71,7 +71,28 @@ public class Rectangle extends JPanel implements MouseMotionListener{
         return this.people;
     }
 
+    public void moveUp(){
+        this.setCorY(this.corY-1);
+        setLocation(this.corX,this.corY);
+        draw();
+    }
+
+    public void moveDown(){
+        this.setCorY(this.corY+1);
+        setLocation(this.corX,this.corY);
+        draw();
+    }
+
+    public void setToolTip(){
+        this.setToolTipText("x = " + this.getCorX() +" "
+                +"y = " + this.getCorY() + " "
+                +"width = " + this.getWidth() + " "
+                +"height = " + this.getHeight() + " "
+                +"people = " +this.getPeople()
+        );
+    }
     public void draw(){
+        setToolTip();
         repaint();
     }
 
