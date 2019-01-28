@@ -12,12 +12,13 @@ public class frameClient  {
     JPanel panelBut;
 
     public frameClient(ArrayList<Rectangle> arr){
+        frameCli = new JFrame("Client1");
         this.arr = arr;
         createFrame();
     }
 
     private void createFrame(){
-        frameCli = new JFrame("Client1");
+
         frameCli.getContentPane().setBackground(Color.white);
         //frameCli.getContentPane().setVisible(false);
         frameCli.setLayout(null);
@@ -191,7 +192,18 @@ public class frameClient  {
                     +"people = " +duc.getPeople()
             );
             duc.draw();
+
         }
+    }
+    public void changeElements(ArrayList<Rectangle> _arr){
+        Rectangle duc;
+        for(int i=0;i<arr.size();i++){
+            duc = arr.get(i);
+            panelPos.remove(duc);
+        }
+        panelPos.repaint();
+        arr = _arr;
+        createElement();
     }
 
     private JTextField arealist;

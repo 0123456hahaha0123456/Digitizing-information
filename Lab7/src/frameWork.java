@@ -1,11 +1,20 @@
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.NoSuchElementException;
+import java.util.TreeMap;
 
 public class frameWork extends javax.swing.JFrame {
+    public static DatagramSocket ds ;
+    ArrayList<People> arr;
     String colour[] = {"red","black","green","magenta","yellow"};
     String fileName = "input.txt";
 
@@ -17,8 +26,12 @@ public class frameWork extends javax.swing.JFrame {
      */
     DefaultTreeModel model;
     public frameWork() {
+        try{
+            ds = new DatagramSocket();
+        }catch (IOException e){}
         initComponents();
         model =(DefaultTreeModel) jTree1.getModel();
+        sendToClient();
     }
 
     /**
@@ -29,7 +42,7 @@ public class frameWork extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
-
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
         jTextField1 = new javax.swing.JTextField();
@@ -129,44 +142,43 @@ public class frameWork extends javax.swing.JFrame {
             System.out.println("No file");
         }
     }
-    //create Rectangle to sent to client
-    private void initRect(ArrayList<People> arr){
-        rect = new ArrayList<Rectangle>(){};
-        Rectangle duc ;
-        Random rand = new Random();
-        for(int i=0;i<arr.size();i++){
-           duc = new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[i%5],i*100+rand.nextInt(1000)+1,i*100+rand.nextInt(1000)+1,arr.get(i));
-           rect.add(duc);
-        }
+    private void setCordinatePeople(People duc){
+        duc.setCordinate();
     }
-
     // create tree, show key of People
     private void initTree(DefaultMutableTreeNode person) throws IOException{
         //read file input to import people
         csvFormat tmp = new csvFormat();
-        ArrayList<People> arr = tmp.readCsvFile(fileName);
+        arr = tmp.readCsvFile(fileName);
         this.mp = new peopleMap5(arr);
 
-        initRect(arr);
+        //initRect(arr);
 
         DefaultMutableTreeNode duc;
-        for(int i=0;i<rect.size();i++) {
-            duc = new DefaultMutableTreeNode(rect.get(i).getPeople());
+
+        for(int i=0;i<arr.size();i++) {
+            setCordinatePeople(arr.get(i));
+            //duc = new DefaultMutableTreeNode(rect.get(i).getPeople());
+            duc = new DefaultMutableTreeNode(arr.get(i));
             person.add(duc);
         }
     }
 
     // get People from 4 feildtext
     private People getPeople(String _name,String _age,String _job,String _onTv){
-        int age = Integer.parseInt(_age);
-        Job job = Job.valueOf(_job.toUpperCase());
-        boolean onTv = Boolean.valueOf(_onTv);
-        People duc = new People(_name,age,job,onTv);
-        return duc;
+        try{
+            int age = Integer.parseInt(_age);
+            Job job = Job.valueOf(_job.toUpperCase());
+            boolean onTv = Boolean.valueOf(_onTv);
+            People duc = new People(_name,age,job,onTv);
+            return duc;
+        }
+        catch (Exception e){
+            return null;
+        }
     }
     //add button
     private DefaultMutableTreeNode selectedNode;
-    Random rand = new Random();
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if (selectedNode != null){
@@ -175,35 +187,53 @@ public class frameWork extends javax.swing.JFrame {
             String job = jTextField4.getText();
             String onTv = jTextField3.getText();
             People duc = getPeople(name,age,job,onTv);
-            mp.add(duc);
-            rect.add(new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[rand.nextInt(4)+1],rand.nextInt(1000)+1, rand.nextInt(1000)+1,duc));
-            selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));
-            model.reload(selectedNode);
+            if (duc!= null) {
+                mp.add(duc);
+                setCordinatePeople(duc);
+                try {selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));}
+                catch (NoSuchElementException e ){System.out.println("node has no children");}
+                model.reload(selectedNode);
+                sendToClient();
+            }
         }
         setFieldText();
+
     }
     //edit button
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        People _tmp = null;
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
-        if (selectedNode != null){
-            String name = jTextField2.getText();
-            String age = jTextField1.getText();
-            String job = jTextField4.getText();
-            String onTv = jTextField3.getText();
-            People duc = getPeople(name,age,job,onTv);
-            mp.add(duc);
-            rect.add(new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[rand.nextInt(4)+1],rand.nextInt(1000)+1, rand.nextInt(1000)+1,duc));
+        if (selectedNode.isLeaf()) {
+            _tmp = (People) selectedNode.getUserObject();
 
-            String _duc = selectedNode.toString();
-            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
-            parent.remove(selectedNode);
-            mp.remove(_duc);
-            for(int i=0;i<rect.size();i++) if (rect.get(i).getPeople().toString().equals(_duc)) { rect.remove(i); break;}
-            parent.insert(new DefaultMutableTreeNode(duc),parent.getIndex(parent.getLastChild()));
+            if (selectedNode != null) {
+                String name = jTextField2.getText();
+                String age = jTextField1.getText();
+                String job = jTextField4.getText();
+                String onTv = jTextField3.getText();
+                People duc = getPeople(name, age, job, onTv);
+                if (duc != null) {
+                    //setCordinatePeople(duc);
+                    duc.setColor(_tmp.getColor());
+                    duc.setCorX(_tmp.getCorX());
+                    duc.setCorY(_tmp.getCorY());
+                    duc.setWidth(_tmp.getWidth());
+                    duc.setHeight(_tmp.getHeight());
+                    mp.add(duc);
 
-            model.reload(parent);
+                    String _duc = selectedNode.toString();
+                    DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
+                    parent.remove(selectedNode);
+                    mp.remove(_duc);
+                    parent.insert(new DefaultMutableTreeNode(duc), parent.getIndex(parent.getLastChild()));
+
+                    model.reload(parent);
+                    sendToClient();
+                }
+            }
         }
         setFieldText();
+
     }
     //delete button
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -213,11 +243,19 @@ public class frameWork extends javax.swing.JFrame {
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
             parent.remove(selectedNode);
             mp.remove(duc);
-            for(int i=0;i<rect.size();i++) if (rect.get(i).getPeople().toString().equals(duc)) { rect.remove(i); break;}
             model.reload(parent);
+            sendToClient();
         }
-        for(int i=0;i<rect.size();i++) System.out.println(rect.get(i).getPeople());
+        //for(int i=0;i<rect.size();i++) System.out.println(rect.get(i).getPeople());
         setFieldText();
+
+    }
+
+
+    //send data void
+    private void sendToClient(){
+        frameThread thread = new frameThread(this.mp,this.ds);
+        thread.run();
     }
 
     public static void solve() {
@@ -257,4 +295,44 @@ public class frameWork extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTree jTree1;
     // End of variables declaration                   
+}
+
+class frameThread implements Runnable{
+    private ArrayList<People> arr ;
+    private DatagramSocket ds;
+    public frameThread(peopleMap5 mp,DatagramSocket ds){
+        this.ds = ds;
+        arr = new ArrayList<>();
+        init(mp);
+    }
+    private void init(peopleMap5 mp){
+        TreeMap<String, People> _arr = mp.getArr();
+        for(int i =0;i< _arr.size();i++){
+            String key = (String) _arr.keySet().toArray()[i];
+            People tmp = _arr.get(key);
+            arr.add(tmp);
+        }
+    }
+    @Override
+    public void run(){
+        try{
+           // Request request = new Request(arr);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(arr);
+            oos.flush();
+
+            byte[] b = baos.toByteArray();
+            InetAddress ia = InetAddress.getLocalHost();
+            DatagramPacket sendPacket = new DatagramPacket(b, b.length, ia, 1302);
+            this.ds.send(sendPacket);
+            System.out.println("data is sent");
+        }
+        catch (IOException e){
+            System.out.println("What a beautiful LA!");
+            e.printStackTrace();
+        }
+
+    }
+
 }

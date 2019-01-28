@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Rectangle">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../Lab7_rectangle/out/artifacts/Rectangle_jar/Rectangle.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

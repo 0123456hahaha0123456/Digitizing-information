@@ -1,3 +1,4 @@
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
@@ -24,6 +25,7 @@ public class frameLogin extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jTextField1 = new javax.swing.JTextField();
         jPasswordField = new javax.swing.JPasswordField(10);
         jButton1 = new javax.swing.JButton();
@@ -78,6 +80,7 @@ public class frameLogin extends javax.swing.JFrame {
         for(int i=0;i<password.length;i++) pass+=password[i];
 
         if (username.equals(this.user) && pass.equals(this.password)){
+
             frameWork.solve();
             dispose();
         }
