@@ -2,7 +2,13 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.io.IOException;
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class frameLogin extends javax.swing.JFrame {
     String user;
@@ -83,6 +89,8 @@ public class frameLogin extends javax.swing.JFrame {
 
             frameWork.solve();
             dispose();
+            //this.checkClient();
+
         }
         else{
             jTextField1.setBackground(Color.RED);

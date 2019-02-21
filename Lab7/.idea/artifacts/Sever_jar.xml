@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Sever:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Sever_jar</output-path>
+    <root id="archive" name="Sever.jar">
+      <element id="module-output" name="Sever" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Lab7_rectangle/out/artifacts/Rectangle_jar/Rectangle.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

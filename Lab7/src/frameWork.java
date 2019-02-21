@@ -1,10 +1,7 @@
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -13,18 +10,19 @@ import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 public class frameWork extends javax.swing.JFrame {
-    public static DatagramSocket ds ;
+    private static DatagramSocket ds ;
     ArrayList<People> arr;
     String colour[] = {"red","black","green","magenta","yellow"};
-    String fileName = "input.txt";
+    private String fileName = "input.txt";
 
-    peopleMap5 mp;
+    private static peopleMap5 mp;
     ArrayList<Rectangle> rect;
 
     /**
      * Creates new form frame
      */
-    DefaultTreeModel model;
+    private DefaultTreeModel model;
+
     public frameWork() {
         try{
             ds = new DatagramSocket();
@@ -178,6 +176,7 @@ public class frameWork extends javax.swing.JFrame {
         }
     }
     //add button
+    //we can't have duplicate key, so if we have two people with same name and age, this means we will create new one
     private DefaultMutableTreeNode selectedNode;
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
@@ -191,7 +190,7 @@ public class frameWork extends javax.swing.JFrame {
                 mp.add(duc);
                 setCordinatePeople(duc);
                 try {selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));}
-                catch (NoSuchElementException e ){System.out.println("node has no children");}
+                catch (NoSuchElementException e ){JOptionPane.showMessageDialog(this, "node has no children");}
                 model.reload(selectedNode);
                 sendToClient();
             }
@@ -238,6 +237,9 @@ public class frameWork extends javax.swing.JFrame {
     //delete button
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
+        try{
+            if (selectedNode.getFirstChild() != null) {JOptionPane.showMessageDialog(this, "Pls don't delete this tree"); return;}
+        } catch (NoSuchElementException e){}
         if (selectedNode != null){
             String duc = selectedNode.toString();
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
@@ -251,12 +253,12 @@ public class frameWork extends javax.swing.JFrame {
 
     }
 
-
     //send data void
-    private void sendToClient(){
-        frameThread thread = new frameThread(this.mp,this.ds);
+    public static void sendToClient(){
+        frameThread thread = new frameThread(mp,ds);
         thread.run();
     }
+
 
     public static void solve() {
         /* Set the Nimbus look and feel */
@@ -297,6 +299,7 @@ public class frameWork extends javax.swing.JFrame {
     // End of variables declaration                   
 }
 
+
 class frameThread implements Runnable{
     private ArrayList<People> arr ;
     private DatagramSocket ds;
@@ -314,8 +317,9 @@ class frameThread implements Runnable{
         }
     }
     @Override
-    public void run(){
+    public synchronized void run(){
         try{
+
            // Request request = new Request(arr);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -327,12 +331,11 @@ class frameThread implements Runnable{
             DatagramPacket sendPacket = new DatagramPacket(b, b.length, ia, 1302);
             this.ds.send(sendPacket);
             System.out.println("data is sent");
+
         }
         catch (IOException e){
             System.out.println("What a beautiful LA!");
             e.printStackTrace();
         }
-
     }
-
 }
