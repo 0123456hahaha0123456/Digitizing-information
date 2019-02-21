@@ -51,7 +51,10 @@ public class frameClient  {
         panelBut.setLayout(new GridLayout(1,4));
 
         //tao filter color - Jlist
-        listColor = new JList(Client.colour);
+        String color[] = {"red","black","green","magenta","yellow","All"};
+
+        listColor = new JList(color);
+
         listColor.setFont(new Font("Arial",Font.ITALIC, 18));
         listColor.setLayoutOrientation(JList.VERTICAL);
 
@@ -112,6 +115,9 @@ public class frameClient  {
                     break;
                 case "yellow":
                     listColor = Color.YELLOW;
+                    break;
+                case "All":
+                    listColorString = null;
                     break;
             }
         }

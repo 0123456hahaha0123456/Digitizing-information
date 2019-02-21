@@ -1,44 +1,44 @@
-import javax.sound.midi.Receiver;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Random;
+
 
 public class Client {
     public static String colour[] = {"red","black","green","magenta","yellow"};
     ArrayList<Rectangle> arr = new ArrayList<Rectangle>();
+
+    //use to sendData to sever to update elements when open client GUI
+    private void sendData() throws IOException{
+        DatagramSocket ds1 = new DatagramSocket();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        String str = "LinhAnhmaiyeuDuc";
+        oos.writeObject(str);
+        oos.flush();
+
+        byte[] b = baos.toByteArray();
+        InetAddress ia = InetAddress.getLocalHost();
+        DatagramPacket dp = new DatagramPacket(b, b.length, ia, 8080);
+        ds1.send(dp);
+        System.out.println("data send");
+    }
+
     private void init()throws IOException{
-      /*  csvFormat tmp = new csvFormat();
-        ArrayList<People> people = tmp.readCsvFile("input.txt");
 
-
-        arr = new ArrayList<Rectangle>(){};
-        Random rand = new Random();
-        Rectangle _duc ;//= new Rectangle(rand.nextInt(50)+20,rand.nextInt(50)+20,colour[4],0,0,people.get(2));
-
-        for(int i=0;i<people.size();i++){
-            _duc = new Rectangle(rand.nextInt(700) +20, rand.nextInt(700)+20,colour[i%5],rand.nextInt(50)+20,rand.nextInt(50)+20,people.get(i));
-            arr.add(_duc);
-        }
-
-        frameClient duc = new frameClient(arr);*/
         frameClient duc = new frameClient(arr);
-
+        sendData();
         DatagramSocket ds = new DatagramSocket(1302);
+
         while (true){
             clientThread newClientThread = new clientThread(ds,ds.getPort(),duc);
             newClientThread.run();
         }
-
-       // frameClient duc = new frameClient(arr);
     }
 
-
     public static void main(String[] args){
-
         Client client = new Client();
         try{
             client.init();
@@ -69,7 +69,6 @@ class clientThread implements Runnable {
             ByteArrayInputStream baos = new ByteArrayInputStream(b1);
             ObjectInputStream oos = new ObjectInputStream(baos);
             ArrayList<People> people = (ArrayList<People>) oos.readObject();
-
 
             arr = new ArrayList<Rectangle>(){};
             Rectangle _duc ;
