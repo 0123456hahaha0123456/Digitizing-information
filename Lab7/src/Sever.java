@@ -23,10 +23,10 @@ public class Sever {
         checkThread duc = new checkThread();
         while (true){
             duc.run();
-            if (duc.getOk()) {
+            //if (duc.getOk()) {
                 frameWork.sendToClient();
-                break;
-            }
+               // break;
+            //}
         }
     }
 
@@ -71,6 +71,8 @@ class checkThread implements Runnable {
             e.printStackTrace();
         } catch (IOException e) {
             System.out.println("Sever is not responding. Please reconnect program!");
+        } catch (NullPointerException e){
+            System.out.println("Waiting");
         }
     }
 }

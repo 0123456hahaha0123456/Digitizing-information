@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+//import java.awt.Rectangle;
 import java.awt.event.*;
 import java.util.ArrayList;
 
@@ -125,20 +126,25 @@ public class frameClient  {
         //find which rec will acceptable condition
         ArrayList<Rectangle> _arr = new ArrayList<Rectangle>(){};
         arrCorY = new int[100];
+        position = new ArrayList<>();
         for(int i=0;i<arr.size();i++){
             Rectangle tmp = arr.get(i);
             if ((tmp.getHeight() * tmp.getWidth() >area) && ((tmp.getColor() == listColor) || (listColorString==null))){
                 arrCorY[_arr.size()] = tmp.getCorY();
+                position.add(tmp.getPeople());
                 _arr.add(tmp);
 
             }
         }
+        for(int i =0;i<_arr.size();i++) System.out.println(arrCorY[i]);
         return _arr;
     }
 
     private void actionPerformed(ActionEvent e){
         String listColorString;
         String areaString;
+        ArrayList<Rectangle> fixArr = new ArrayList<>();
+        ArrayList<Rectangle> _arr;// = new ArrayList<>();
         if (e.getActionCommand().equals("Start")){
             try{
                 listColorString  = listColor.getSelectedValue().toString();
@@ -147,7 +153,8 @@ public class frameClient  {
 
                 if (listColorString!=null || areaString!=null) {
                     //System.out.println(listColorString + " " + areaString);
-                    ArrayList<Rectangle> _arr = recFilter(listColorString,areaString);
+                    _arr = recFilter(listColorString,areaString);
+                    //fixArr = _arr;
                     timer = new Timer(100, new ActionListener() {
                         long start1 = System.currentTimeMillis();
                         public void actionPerformed(ActionEvent e) {
@@ -175,9 +182,22 @@ public class frameClient  {
             }
         }
         else if (e.getActionCommand().equals("End")) {
+            fixPosition(position);
             timer.stop();
         }
     }
+
+    //fix postition of rec when click End
+    private void fixPosition(ArrayList<People> _fixArr){
+        for(int i=0;i<arr.size();i++){
+            for(int j=0;j<position.size();j++) if (arr.get(i).getPeople().equals(position.get(j))){
+                arr.get(i).setCorY(arrCorY[j]);
+                arr.get(i).setLocation(arr.get(i).getCorX(), arr.get(i).getCorY());
+                arr.get(i).draw();
+            }
+        }
+    }
+
 
     private void setTitle(JPanel duc, String title){
         TitledBorder border = new TitledBorder(title);
@@ -216,4 +236,5 @@ public class frameClient  {
     private JList listColor;
     private Timer timer = null;
     private int[] arrCorY;
+    private ArrayList<People> position;
 }
