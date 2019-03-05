@@ -5,6 +5,8 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
@@ -23,10 +25,11 @@ public class frameWork extends javax.swing.JFrame {
      */
     private DefaultTreeModel model;
 
-    public frameWork() {
+    public frameWork() throws SQLException{
         try{
             ds = new DatagramSocket();
         }catch (IOException e){}
+        DBConnection.getConnection();
         initComponents();
         model =(DefaultTreeModel) jTree1.getModel();
         sendToClient();
@@ -39,7 +42,7 @@ public class frameWork extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
-    private void initComponents() {
+    private void initComponents() throws SQLException{
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
@@ -62,21 +65,33 @@ public class frameWork extends javax.swing.JFrame {
         jButton1.setText("Add");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                try{
+                    jButton1ActionPerformed(evt);
+                }catch (SQLException e){
+                    System.out.println("SQL was wrong");
+                }
             }
         });
 
         jButton2.setText("Edit");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                try{
+                    jButton2ActionPerformed(evt);
+                }catch (SQLException e){
+                    System.out.println("SQL was wrong");
+                }
             }
         });
 
         jButton3.setText("Delete");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                try{
+                    jButton3ActionPerformed(evt);
+                }catch (SQLException e){
+                    System.out.println("SQL was wrong");
+                }
             }
         });
 
@@ -130,7 +145,7 @@ public class frameWork extends javax.swing.JFrame {
         jTextField3.setText("onTv3");
         jTextField4.setText("Job4");
     }
-    private void createNodes(DefaultMutableTreeNode top) {
+    private void createNodes(DefaultMutableTreeNode top) throws SQLException {
         DefaultMutableTreeNode  person ;
         person = new DefaultMutableTreeNode("People");
         top.add(person);
@@ -143,11 +158,26 @@ public class frameWork extends javax.swing.JFrame {
     private void setCordinatePeople(People duc){
         duc.setCordinate();
     }
+
+    private ArrayList<People> getPeopleFromDB() throws SQLException{
+        ArrayList<People> arr = new ArrayList<>();
+        ResultSet rs = DBConnection.execQuery("SELECT * FROM people");
+        while(rs.next()){
+            String name = rs.getString(2);
+            String age = String.valueOf(rs.getInt(3));
+            String job = rs.getString(4);
+            String onTV = rs.getString(5);
+            People temp = getPeople(name,age.toString(),job,onTV);
+            arr.add(temp);
+        }
+        id = getMaxID()+1;
+        return arr;
+    }
+
     // create tree, show key of People
-    private void initTree(DefaultMutableTreeNode person) throws IOException{
+    private void initTree(DefaultMutableTreeNode person) throws IOException,SQLException{
         //read file input to import people
-        csvFormat tmp = new csvFormat();
-        arr = tmp.readCsvFile(fileName);
+        arr = getPeopleFromDB();
         this.mp = new peopleMap5(arr);
 
         //initRect(arr);
@@ -161,7 +191,15 @@ public class frameWork extends javax.swing.JFrame {
             person.add(duc);
         }
     }
-
+    private int getMaxID() throws SQLException{
+        int res = 0;
+        ResultSet rs =DBConnection.execQuery("SELECT * FROM people");
+        while (rs.next()){
+            int tmp = Integer.parseInt(rs.getString(1));
+            if (tmp>res) res = tmp;
+        }
+        return res;
+    }
     // get People from 4 feildtext
     private People getPeople(String _name,String _age,String _job,String _onTv){
         try{
@@ -178,7 +216,7 @@ public class frameWork extends javax.swing.JFrame {
     //add button
     //we can't have duplicate key, so if we have two people with same name and age, this means we will create new one
     private DefaultMutableTreeNode selectedNode;
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) throws SQLException{
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if (selectedNode != null){
             String name = jTextField2.getText();
@@ -187,6 +225,8 @@ public class frameWork extends javax.swing.JFrame {
             String onTv = jTextField3.getText();
             People duc = getPeople(name,age,job,onTv);
             if (duc!= null) {
+                DBConnection.insertDB("people",id,duc);
+                id++;
                 mp.add(duc);
                 setCordinatePeople(duc);
                 try {selectedNode.insert(new DefaultMutableTreeNode(duc),selectedNode.getIndex(selectedNode.getLastChild()));}
@@ -199,7 +239,7 @@ public class frameWork extends javax.swing.JFrame {
 
     }
     //edit button
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {
         People _tmp = null;
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if (selectedNode.isLeaf()) {
@@ -223,9 +263,10 @@ public class frameWork extends javax.swing.JFrame {
                     String _duc = selectedNode.toString();
                     DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
                     parent.remove(selectedNode);
+                    //DBConnection.deleteDB("people",_duc);
                     mp.remove(_duc);
                     parent.insert(new DefaultMutableTreeNode(duc), parent.getIndex(parent.getLastChild()));
-
+                    DBConnection.updateDB("people",_duc,duc);
                     model.reload(parent);
                     sendToClient();
                 }
@@ -235,7 +276,7 @@ public class frameWork extends javax.swing.JFrame {
 
     }
     //delete button
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) throws SQLException{
         selectedNode = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         try{
             if (selectedNode.getFirstChild() != null) {JOptionPane.showMessageDialog(this, "Pls don't delete this tree"); return;}
@@ -244,6 +285,7 @@ public class frameWork extends javax.swing.JFrame {
             String duc = selectedNode.toString();
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
             parent.remove(selectedNode);
+            DBConnection.deleteDB("people",duc);
             mp.remove(duc);
             model.reload(parent);
             sendToClient();
@@ -260,7 +302,7 @@ public class frameWork extends javax.swing.JFrame {
     }
 
 
-    public static void solve() {
+    public static void solve(){
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -282,7 +324,11 @@ public class frameWork extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new frameWork().setVisible(true);
+            try{
+                new frameWork().setVisible(true);
+            }catch (SQLException e){
+                System.out.println("SQL wrong!!");
+            }
         });
     }
 
@@ -296,6 +342,8 @@ public class frameWork extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTree jTree1;
+    private DBConnection DBConnection = new DBConnection();
+    private int id;
     // End of variables declaration                   
 }
 
