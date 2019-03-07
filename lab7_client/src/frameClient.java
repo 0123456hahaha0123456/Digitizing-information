@@ -1,19 +1,23 @@
+import control.UTF8Control;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-//import java.awt.Rectangle;
 import java.awt.event.*;
+import java.text.DateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 
 public class frameClient  {
-    ArrayList<Rectangle> arr;
-    JFrame frameCli;
-    JPanel panelPos;
-    JPanel panelBut;
+
 
     public frameClient(ArrayList<Rectangle> arr){
-        frameCli = new JFrame("Client1");
+        frameCli = new JFrame("Client");
         this.arr = arr;
         createFrame();
     }
@@ -24,7 +28,7 @@ public class frameClient  {
         //frameCli.getContentPane().setVisible(false);
         frameCli.setLayout(null);
 
-        frameCli.setSize(1000,1000);
+        frameCli.setSize(1000,1050);
         frameCli.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         panelPos = new JPanel();
@@ -45,6 +49,23 @@ public class frameClient  {
         frameCli.add(panelPos,BorderLayout.NORTH);
         frameCli.add(panelBut,BorderLayout.SOUTH);
 
+        //add menu to jframe
+        JMenuBar menuBar = new JMenuBar();
+        menu = new Menu(this);
+        menuBar.add(menu);
+        frameCli.setJMenuBar(menuBar);
+
+        changeLanguage(Locale.getDefault());
+
+        //add Time
+
+        panelTime = new JPanel();
+        panelTime.setSize(500,50);
+        panelTime.setLocation(500,900);
+        panelTime.setLayout(new FlowLayout());
+        addTimeDate(panelTime,Locale.getDefault());
+        frameCli.add(panelTime,BorderLayout.SOUTH);
+
         frameCli.setVisible(true);
     }
 
@@ -52,38 +73,36 @@ public class frameClient  {
         panelBut.setLayout(new GridLayout(1,4));
 
         //tao filter color - Jlist
-        String color[] = {"red","black","green","magenta","yellow","All"};
-
-        listColor = new JList(color);
-
+        listColor = new JList();
+        listColor.setListData(color);
         listColor.setFont(new Font("Arial",Font.ITALIC, 18));
         listColor.setLayoutOrientation(JList.VERTICAL);
 
         JScrollPane listScroller = new JScrollPane(listColor);
         listScroller.setPreferredSize(new Dimension(250, 100));
 
-        JPanel listCol = new JPanel();
+        listCol = new JPanel();
         listCol.add(listScroller);
-        setTitle(listCol,"filter by color");
+        setTitle(listCol,"filterByColor");
 
         //tao filter dien tich - Jtexfield
         arealist = new JTextField();
         arealist.setColumns(10);
 
-        JPanel area = new JPanel();
-        setTitle(area,"filter bye area");
+        area = new JPanel();
+        setTitle(area,"filterByArea");
         area.add(arealist,BorderLayout.CENTER);
 
         //tao nut start
         JPanel start = new JPanel();
-        JButton startButton = new JButton("Start");
+        startButton = new JButton("Start");
         //startButton.setText("Start");
         startButton.addActionListener(this::actionPerformed);
         start.add(startButton,BorderLayout.CENTER);
 
         //tao nut End
         JPanel end = new JPanel();
-        JButton endButton = new JButton("End");
+        endButton = new JButton("End");
         endButton.addActionListener(this::actionPerformed);
         end.add(endButton,BorderLayout.CENTER);
 
@@ -95,12 +114,14 @@ public class frameClient  {
 
     //the filter rec
     private ArrayList<Rectangle> recFilter(String listColorString, String areaString){
+
         int area;
         if (areaString!=null) area = Integer.parseInt(areaString);
         else area = 0;
 
         Color listColor = Color.YELLOW;
         if (listColorString!= null) {
+            listColorString = rbBoss.getString(listColorString);
             switch (listColorString) {
                 case "red":
                     listColor = Color.RED;
@@ -145,7 +166,7 @@ public class frameClient  {
         String areaString;
         ArrayList<Rectangle> fixArr = new ArrayList<>();
         ArrayList<Rectangle> _arr;// = new ArrayList<>();
-        if (e.getActionCommand().equals("Start")){
+        if (rbBoss.getString(e.getActionCommand()).equals("Start")){
             try{
                 listColorString  = listColor.getSelectedValue().toString();
                 if (!arealist.getText().equals("")) areaString =  arealist.getText() ;
@@ -181,7 +202,7 @@ public class frameClient  {
                 System.out.println("hihi");
             }
         }
-        else if (e.getActionCommand().equals("End")) {
+        else if (rbBoss.getString(e.getActionCommand()).equals("End")) {
             fixPosition(position);
             timer.stop();
         }
@@ -221,6 +242,15 @@ public class frameClient  {
 
         }
     }
+
+    private void addTimeDate(JPanel tmp,Locale locale){
+        changeTime(locale);
+
+        tmp.add(timeDate);
+        totalLocale = locale;
+        Timer t1 = new Timer(1000,updateClockAction);
+        t1.start();
+    }
     public void changeElements(ArrayList<Rectangle> _arr){
         Rectangle duc;
         for(int i=0;i<arr.size();i++){
@@ -232,9 +262,61 @@ public class frameClient  {
         createElement();
     }
 
+    private void changeTime(Locale tmp){
+        totalLocale = tmp;
+        Date myDate = new Date();
+        DateFormat df = DateFormat.getDateInstance(DateFormat.LONG,totalLocale);
+        DateFormat tf = DateFormat.getTimeInstance(DateFormat.LONG,totalLocale);
+
+        String date = df.format(myDate);
+        String time = tf.format(myDate);
+        String pattern = date + " " + time;
+
+        timeDate.setText(pattern);
+    }
+
+    ActionListener updateClockAction = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            changeTime(totalLocale);
+        }
+    };
+
+    private void changeLanguageJList(ResourceBundle rb){
+        String[] tmp = new String[6];
+        for(int i=0;i<6;i++) tmp[i] = rb.getString(color[i]);
+        this.listColor.setListData(tmp);
+    }
+    public void changeLanguage(Locale locale){
+        ResourceBundle rb = ResourceBundle.getBundle("resources.Resources", locale, new UTF8Control());
+        frameCli.setTitle(rb.getString("Client"));
+        startButton.setText(rb.getString("Start"));
+        endButton.setText(rb.getString("End"));
+        setTitle(listCol,rb.getString("filterByColor"));
+        setTitle(area,rb.getString("filterByArea"));
+        changeLanguageJList(rb);
+        menu.changeLanguage(locale);
+        changeTime(locale);
+    }
+
+    private ArrayList<Rectangle> arr;
+    private JFrame frameCli;
+    private JPanel panelPos;
+    private JPanel panelBut;
     private JTextField arealist;
     private JList listColor;
     private Timer timer = null;
     private int[] arrCorY;
     private ArrayList<People> position;
+    private Menu menu;
+    private JButton startButton;
+    private JButton endButton;
+    private JPanel listCol;
+    private JPanel area;
+    private JPanel panelTime;
+    private String[] color = {"red", "green", "black", "magenta", "yellow", "All"};
+    private Locale localeBoss = new Locale("en","EN");
+    private ResourceBundle rbBoss = ResourceBundle.getBundle("resources.Resources", localeBoss, new UTF8Control());
+    private JFormattedTextField timeDate = new JFormattedTextField();;
+    private Locale totalLocale;
 }
