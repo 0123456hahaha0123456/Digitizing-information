@@ -1,5 +1,5 @@
 # Programma
-Lab
+
 This program is a project, which is written in Java. Each lab is updated work for previous lab. 
 
 The last reponsitory(lab7) is finished with knowlegde of core Java. I created GUI for client and sever, which can run in some languages.
